@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Socket.IO chat</title>
+    <style>
+      body {
+       margin: 0; padding-bottom: 3rem; font-family: Helvetica, Arial, sans-serif; 
+       }
+
+      #form 
+      { background: rgba(0, 0, 0, 0.15); padding: 0.25rem; bottom: 0;; display: flex; height: 3rem; box-sizing: border-box; backdrop-filter: blur(10px); 
+        width: 500px;
+        margin: 0 auto;
+      }
+      #input {
+       border: none; padding: 0 1rem; flex-grow: 1; border-radius: 2rem; margin: 0.25rem; 
+       }
+      #input:focus {
+       outline: none; 
+       }
+      #form > button { 
+      background: #333; border: none; padding: 0 1rem; margin: 0.25rem; border-radius: 3px; outline: none; color: #fff; 
+      }
+
+      #messages {
+       list-style-type: none; margin: 0; padding: 0; 
+       }
+      #messages > li {
+       padding: 0.5rem 1rem; 
+       }
+      #messages > li:nth-child(odd) { 
+      background: #efefef; 
+      }
+      .container {
+        width: 500px;
+        margin: 0 auto;
+      }
+      body{
+    background-color: #ffffff;
+}
+.app{
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: #FFF;
+    border-left: 1px solid #70A3AB;
+    border-right: 1px solid #70A3AB;
+}
+.app > .screen{
+    display: none;
+}
+.app > .screen.active{
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+.screen .form{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    max-width: 400px;
+}
+
+.screen .form-input{
+    width: 100%;
+    margin: 20px 0px;
+    text-align: center;
+}
+.screen h2{
+    margin-bottom: 20px;
+    font-size:30px;
+    text-align: center;
+    color: #000;
+    padding: 5px 0px;
+    display: inline-block;
+}
+.screen .form-input label{
+    display: block;
+    margin-bottom: 5px;
+}
+.screen .form-input input{
+    width: 100%;
+    padding: 10px;
+    color: #000;
+    background-color: #ffffff;
+    border: 1px solid #000000;
+    border-radius: 5px;
+    font-size: 16px;
+}
+.screen .form-input button{
+    padding: 10px 20px;
+    background: #e7eb17;
+    color: #000000;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    outline: none;
+    border: none;
+    border-radius: 20px;
+}
+bold{
+    font-weight: bold;
+}
+
+    </style>
+  </head>
+  <body>
+    <div class="first">
+        <div class="app">
+          <div class="screen join-screen active">
+              <div class="form">
+                  <div class="form-input">
+                      <input type="text" id="username" placeholder="Введите логин">
+                  </div>
+                  <div class="form-input">
+                      <button id="join-user">Нажмите "Enter"</button>
+                  </div>
+              </div>
+            </div>
+          </div>
+      </div>
+      <div class="second">
+        <ul id="messages"></ul>
+        <form id="form" action="none" class="formtext">
+          <input id="input" placeholder="Напишите что-нибудь..." autocomplete="off" /><button>Отправить</button>
+        </form>
+      </div>  
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+const app = document.querySelector(".app");
+const username = document.getElementById("username");
+const messages = document.getElementById("messages");
+const form = document.getElementById("form");
+const input = document.getElementById("input");
+let user = null;
+const socket = io();
+
+username.addEventListener("keypress", (event) => {
+    if (event.key === "Enter") {
+        console.log(event.target.value);
+        socket.emit("setname", event.target.value);
+        app.style.display = "none";
+        user = event.target.value;
+    }
+});
+
+// Добавляем обработчик события click
+const joinUserButton = document.getElementById("join-user");
+joinUserButton.addEventListener("click", (event) => {
+    console.log(username.value);
+    socket.emit("setname", username.value);
+    app.style.display = "none";
+    user = username.value;
+});
+
+
+
+        form.addEventListener("submit", (e) => {
+            e.preventDefault();
+            if (input.value != "") {
+                socket.emit("messageFromClient", {
+                    name: user,
+                    msg: input.value,
+                });
+                input.value = "";
+            }
+        });
+
+        let date = new Date()
+        socket.on("messageFromServer", (data) => {
+            const item = document.createElement("li");
+            item.innerHTML = `${date} <bold>${data.name}</bold> : `;
+            item.innerHTML += data.msg;
+            messages.appendChild(item);
+            window.scrollTo(0, document.body.scrollHeight);
+        });
+
+    </script>
+  </body>
+</html>
